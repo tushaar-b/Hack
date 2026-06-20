@@ -120,7 +120,7 @@ export default function LandingPage() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-emerald-500 flex items-center justify-center">
               <TrendingUp className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-white">TradeSignal <span className="text-blue-400">Pro</span></span>
+            <span className="font-bold text-white">Aarthi<span className="text-blue-400">AI</span></span>
           </div>
           <div className="flex items-center space-x-3">
             <button onClick={() => navigate('/login')} className="btn-secondary text-sm py-2">
@@ -262,7 +262,7 @@ export default function LandingPage() {
         <footer className="py-8 border-t border-slate-800/60">
           <Disclaimer />
           <p className="text-xs text-slate-600 mt-3 text-center">
-            TradeSignal Pro · NSE/BSE 5-Day Forecast Platform · Not affiliated with NSE, BSE, or SEBI
+            AarthiAI · NSE/BSE 5-Day Forecast Platform · Not affiliated with NSE, BSE, or SEBI
           </p>
         </footer>
       </div>

@@ -132,7 +132,7 @@ export default function AdminPipeline() {
             The local pipeline runs on your machine via Task Scheduler. To trigger a manual run:
           </p>
           <div className="bg-slate-900/60 rounded-lg p-3 font-mono text-xs text-emerald-400 space-y-1">
-            <p>cd C:\path\to\tradesignal-pro\local_engine</p>
+            <p>cd C:\path\to\aarthiai\local_engine</p>
             <p>python run_pipeline.py</p>
           </div>
           <p className="text-xs text-slate-500 mt-3">

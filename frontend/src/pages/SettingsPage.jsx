@@ -68,10 +68,10 @@ export default function SettingsPage() {
                 <input
                   value={telegram.chatId}
                   onChange={e => setTelegram(t => ({...t, chatId: e.target.value}))}
-                  placeholder="Your Telegram chat ID (start @TradeSignalProBot)"
+                  placeholder="Your Telegram chat ID (start @AarthiAIBot)"
                   className="input-field"
                 />
-                <p className="text-xs text-slate-500 mt-1">Send /start to @TradeSignalProBot to get your Chat ID</p>
+                <p className="text-xs text-slate-500 mt-1">Send /start to @AarthiAIBot to get your Chat ID</p>
               </div>
             )}
           </div>

@@ -41,7 +41,7 @@ export default function LoginPage() {
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-emerald-500 flex items-center justify-center mx-auto mb-3">
             <TrendingUp className="w-6 h-6 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-white">TradeSignal Pro</h1>
+          <h1 className="text-2xl font-bold text-white">AarthiAI</h1>
           <p className="text-slate-400 text-sm mt-1">Sign in to your account</p>
         </div>
 

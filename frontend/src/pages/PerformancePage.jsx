@@ -56,7 +56,7 @@ export default function PerformancePage() {
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-emerald-500 flex items-center justify-center">
               <TrendingUp className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-white text-sm">TradeSignal Pro</span>
+            <span className="font-bold text-white text-sm">AarthiAI</span>
           </div>
           <a href="/login" className="btn-secondary text-sm py-1.5">Sign In</a>
         </div>

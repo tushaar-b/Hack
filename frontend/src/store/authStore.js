@@ -1,45 +1,59 @@
 import { create } from 'zustand'
-import { supabase } from '../lib/supabase'
+import { API_URL } from '../lib/supabase'
+
+const SESSION_KEY = 'neurox_notion_user'
 
 export const useAuthStore = create((set) => ({
-  user: null,
-  session: null,
+  user:        null,
+  session:     null,
   initialized: false,
 
-  initialize: async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    set({ session, user: session?.user ?? null, initialized: true })
-
-    supabase.auth.onAuthStateChange((_event, session) => {
-      set({ session, user: session?.user ?? null })
-    })
+  // ─── Bootstrap ────────────────────────────────────────────────────────────
+  initialize: () => {
+    try {
+      const stored = localStorage.getItem(SESSION_KEY)
+      if (stored) {
+        const user = JSON.parse(stored)
+        set({ user, session: { user }, initialized: true })
+        return
+      }
+    } catch (_) {}
+    set({ initialized: true })
   },
 
+  // ─── Sign In (Notion) ─────────────────────────────────────────────────────
   signIn: async (email, password) => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) throw error
-      return data
-    } catch (err) {
-      console.warn("Supabase authentication failed. Falling back to local mock session:", err.message);
-      const mockSession = {
-        user: {
-          id: '1e73f221-b2a8-4f69-9eca-fd10935d6626',
-          email: email || 'visitor@example.com',
-          user_metadata: { email: email || 'visitor@example.com' }
-        }
-      };
-      set({ session: mockSession, user: mockSession.user })
-      return { session: mockSession, user: mockSession.user }
-    }
+    const res = await fetch(`${API_URL}/notion/login`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email, password }),
+    })
+
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.detail || 'Invalid email or password')
+
+    const user = data.user
+    localStorage.setItem(SESSION_KEY, JSON.stringify(user))
+    set({ user, session: { user } })
+    return data
   },
 
+  // ─── Sign Up (Notion) ─────────────────────────────────────────────────────
+  signUp: async (name, email, password) => {
+    const res = await fetch(`${API_URL}/notion/signup`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ name, email, password }),
+    })
+
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.detail || 'Registration failed')
+    return data
+  },
+
+  // ─── Sign Out ─────────────────────────────────────────────────────────────
   signOut: async () => {
-    try {
-      await supabase.auth.signOut()
-    } catch (err) {
-      console.warn("Sign out failed, clearing local session:", err.message);
-    }
-    set({ session: null, user: null })
-  }
+    localStorage.removeItem(SESSION_KEY)
+    set({ user: null, session: null })
+  },
 }))

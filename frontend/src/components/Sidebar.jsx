@@ -38,7 +38,7 @@ export default function Sidebar() {
             <TrendingUp className="w-4 h-4 text-[var(--color-positive)]" />
           </div>
           <div>
-            <span className="font-display text-xl text-[var(--text-primary)]">TradeSignal</span>
+            <span className="font-display text-xl text-[var(--text-primary)]">AarthiAI</span>
             <span className="font-label text-[var(--color-positive)] block -mt-1">Pro</span>
           </div>
         </div>
