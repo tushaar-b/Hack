@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { TrendingUp, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import Disclaimer from '../components/Disclaimer';
@@ -10,8 +10,23 @@ export default function LoginPage() {
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { signIn } = useAuthStore();
+  const { signIn, ssoLogin } = useAuthStore();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Handle incoming SSO token
+  useEffect(() => {
+    const token = searchParams.get('token');
+    if (token) {
+      setLoading(true);
+      ssoLogin(token)
+        .then(() => navigate('/dashboard', { replace: true }))
+        .catch(err => {
+          setError(err.message || 'Invalid SSO token');
+          setLoading(false);
+        });
+    }
+  }, [searchParams, ssoLogin, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

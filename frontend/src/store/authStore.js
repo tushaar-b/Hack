@@ -38,6 +38,23 @@ export const useAuthStore = create((set) => ({
     return data
   },
 
+  // ─── Sign In (SSO) ────────────────────────────────────────────────────────
+  ssoLogin: async (token) => {
+    const res = await fetch(`${API_URL}/notion/sso`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ token }),
+    })
+
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.detail || 'SSO login failed')
+
+    const user = data.user
+    localStorage.setItem(SESSION_KEY, JSON.stringify(user))
+    set({ user, session: { user } })
+    return data
+  },
+
   // ─── Sign Up (Notion) ─────────────────────────────────────────────────────
   signUp: async (name, email, password) => {
     const res = await fetch(`${API_URL}/notion/signup`, {

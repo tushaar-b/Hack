@@ -5,6 +5,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import httpx
+import jwt
 from dotenv import load_dotenv
 
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env'))
@@ -13,6 +14,7 @@ NOTION_API_KEY  = os.environ.get("NOTION_API_KEY",       "").strip()
 USERS_DB_ID     = os.environ.get("NOTION_USERS_DB_ID",    "").strip()
 WATCHLIST_DB_ID = os.environ.get("NOTION_WATCHLIST_DB_ID","").strip()
 TRADELOG_DB_ID  = os.environ.get("NOTION_TRADELOG_DB_ID", "").strip()
+SSO_SECRET_KEY  = os.environ.get("SSO_SECRET_KEY", "my_super_secret_sso_key").strip()
 
 NOTION_VERSION = "2022-06-28"
 NOTION_BASE    = "https://api.notion.com/v1"
@@ -94,6 +96,9 @@ class SignupRequest(BaseModel):
     email: str
     password: str
 
+class SSOLoginRequest(BaseModel):
+    token: str
+
 @router.post("/login")
 def login(req: LoginRequest):
     email   = req.email.strip().lower()
@@ -167,6 +172,70 @@ def signup(req: SignupRequest):
             "id":           page["id"],
             "email":        email,
             "name":         req.name,
+            "notionPageId": page["id"],
+        }
+    }
+
+@router.post("/sso")
+def sso_login(req: SSOLoginRequest):
+    try:
+        payload = jwt.decode(req.token, SSO_SECRET_KEY, algorithms=["HS256"])
+        email = payload.get("email")
+        if not email:
+            raise HTTPException(status_code=400, detail="Invalid token payload")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="SSO token expired")
+    except Exception as e:
+        print("JWT ERROR:", repr(e))
+        raise HTTPException(status_code=401, detail=f"Invalid SSO token: {repr(e)}")
+
+    email = email.strip().lower()
+
+    try:
+        result = _post(f"databases/{USERS_DB_ID}/query", {
+            "filter": {"property": "Email", "title": {"equals": email}}
+        })
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=502, detail=f"Notion error: {e.response.text}")
+
+    pages = result.get("results", [])
+    if not pages:
+        # Auto-create user for seamless SSO
+        name = email.split("@")[0]
+        import secrets
+        pw_hash = _hash(secrets.token_urlsafe(16))
+        
+        body = {
+            "parent": {"database_id": USERS_DB_ID},
+            "properties": {
+                "Email":    {"title":     [{"type": "text", "text": {"content": email}}]},
+                "Password": {"rich_text": [{"type": "text", "text": {"content": pw_hash}}]},
+                "Name":     {"rich_text": [{"type": "text", "text": {"content": name}}]},
+            }
+        }
+        try:
+            page = _post("pages", body)
+            return {
+                "user": {
+                    "id":           page["id"],
+                    "email":        email,
+                    "name":         name,
+                    "notionPageId": page["id"],
+                }
+            }
+        except httpx.HTTPStatusError as e:
+            raise HTTPException(status_code=502, detail=f"Notion error: {e.response.text}")
+
+    page  = pages[0]
+    props = page["properties"]
+    name_key = next((k for k in props if k.lower() == "name"), None)
+    name     = _rich(props[name_key]) if name_key else email.split("@")[0]
+
+    return {
+        "user": {
+            "id":           page["id"],
+            "email":        email,
+            "name":         name,
             "notionPageId": page["id"],
         }
     }
